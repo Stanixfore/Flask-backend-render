@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # Importer Flask-CORS
 from chat_logic import generate_response
 
 # Création de l'application Flask
 app = Flask(__name__)
+CORS(app)  # Activer CORS pour toutes les routes
 
 # Route pour la page d'accueil (optionnel)
 @app.route('/')
