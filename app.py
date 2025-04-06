@@ -6,7 +6,7 @@ import openai
 app = Flask(__name__)
 CORS(app)
 
-# Configurer l'API OpenAI
+# Configurer l'API OpenAI (remplace par ta clé API)
 openai.api_key = "votre_clé_API_OpenAI"
 
 @app.route('/')
@@ -15,8 +15,11 @@ def home():
 
 @app.route('/chat', methods=['POST'])
 def chat():
+    """
+    Gère les requêtes POST pour interagir avec l'IA.
+    """
     try:
-        # Log pour les données reçues
+        # Log des données reçues
         print("Requête reçue : ", request.json)
         
         # Extraire le message utilisateur
@@ -30,17 +33,16 @@ def chat():
 
         # Envoyer la requête à l'API OpenAI
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-3.5-turbo",  # Ou "gpt-4" si disponible
             messages=[
                 {"role": "system", "content": "Tu es une IA utile et amicale."},
                 {"role": "user", "content": user_message}
             ]
         )
 
-        # Log pour la réponse de l'IA
-        print("Réponse de l'IA : ", response)
-        
+        # Extraire la réponse de l'IA
         ai_response = response['choices'][0]['message']['content']
+        print("Réponse de l'IA : ", ai_response)
         return jsonify({"response": ai_response})
 
     except Exception as e:
