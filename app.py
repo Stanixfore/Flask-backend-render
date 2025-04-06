@@ -1,38 +1,49 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS  # Importer Flask-CORS
-from chat_logic import generate_response  # Importer ta logique d'IA
+from flask_cors import CORS  # Gestion des autorisations CORS
+import openai
 
-# Création de l'application Flask
+# Initialiser Flask et Flask-CORS
 app = Flask(__name__)
-CORS(app)  # Activer CORS pour toutes les routes
+CORS(app)  # Activer CORS pour permettre l'accès depuis ton extension
 
-# Route pour la page d'accueil (optionnel)
+# Configurer l'API OpenAI (assurez-vous que votre clé API est configurée)
+openai.api_key = "votre_clé_API_OpenAI"
+
+# Page d'accueil (facultative)
 @app.route('/')
 def home():
     """
     Page d'accueil du serveur Flask.
     """
-    return "Bienvenue sur le serveur Flask IA ! Utilisez la route /chat pour discuter avec l'IA."
+    return "Bienvenue sur le serveur Flask IA ! Utilisez la route /chat pour interagir avec l'IA."
 
-# Route pour interagir avec l'IA
+# Endpoint /chat pour gérer les requêtes de l'extension
 @app.route('/chat', methods=['POST'])
 def chat():
     """
-    Gère les requêtes POST envoyées par l'extension de navigateur.
-    Attend un message utilisateur et renvoie une réponse générée par l'IA.
+    Gère les requêtes POST pour interagir avec l'IA.
     """
     try:
-        # Extraire le message utilisateur depuis les données JSON de la requête
+        # Extraire le message utilisateur depuis la requête JSON
         user_message = request.json.get("message", "")
         if not user_message.strip():
-            return jsonify({"response": "Message vide. Veuillez entrer une question ou une phrase valide."}), 400
+            return jsonify({"response": "Veuillez entrer un message valide."}), 400
 
-        # Utiliser la fonction pour générer une réponse de l'IA
-        response = generate_response(user_message)
-        return jsonify({"response": response})
-    
+        # Envoyer la requête à l'API OpenAI ChatCompletion
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",  # Ou utilisez "gpt-4" si disponible
+            messages=[
+                {"role": "system", "content": "Tu es une IA utile et amicale."},
+                {"role": "user", "content": user_message}
+            ]
+        )
+
+        # Extraire la réponse de l'IA
+        ai_response = response['choices'][0]['message']['content']
+        return jsonify({"response": ai_response})
+
     except Exception as e:
-        # Gérer les erreurs et retourner une réponse appropriée
+        # Gestion des erreurs
         return jsonify({"response": f"Erreur interne du serveur : {str(e)}"}), 500
 
 # Lancer le serveur Flask
